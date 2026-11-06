@@ -82,4 +82,4 @@ class Entidad(ABC):
     @abstractmethod
     def resumen(self) -> str:
         """Devuelve una descripción corta de la entidad."""
-
+class
