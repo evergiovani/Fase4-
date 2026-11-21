@@ -82,23 +82,25 @@ class Application(tk.Tk):
         """Crea el formulario de clientes y la tabla con sus registros."""
         formulario = ttk.LabelFrame(self.tab_clientes, text="Registrar cliente", padding=10)
         formulario.pack(fill="x")
+        self.cedula_cliente = tk.StringVar()
         self.nombre_cliente = tk.StringVar()
         self.correo_cliente = tk.StringVar()
         self.telefono_cliente = tk.StringVar()
         # Las variables de Tkinter conectan las cajas de texto con el código Python.
         campos = (
+            ("Cédula", self.cedula_cliente),
             ("Nombre", self.nombre_cliente),
             ("Correo", self.correo_cliente),
             ("Teléfono", self.telefono_cliente),
         )
         for indice, (etiqueta, variable) in enumerate(campos):
             ttk.Label(formulario, text=etiqueta).grid(row=0, column=indice, sticky="w", padx=5)
-            ttk.Entry(formulario, textvariable=variable, width=28).grid(
+            ttk.Entry(formulario, textvariable=variable, width=22).grid(
                 row=1, column=indice, padx=5, pady=4
             )
         ttk.Button(
             formulario, text="Guardar cliente", command=self._accion(self._registrar_cliente)
-        ).grid(row=1, column=3, padx=8)
+        ).grid(row=2, column=0, columnspan=4, pady=8)
         self.tabla_clientes = self._crear_tabla(
             self.tab_clientes,
             ("id", "nombre", "correo", "telefono"),
@@ -253,7 +255,9 @@ class Application(tk.Tk):
             self.nombre_cliente.get(),
             self.correo_cliente.get(),
             self.telefono_cliente.get(),
+            cedula=self.cedula_cliente.get(),
         )
+        self.cedula_cliente.set("")
         self.nombre_cliente.set("")
         self.correo_cliente.set("")
         self.telefono_cliente.set("")
@@ -292,14 +296,17 @@ class Application(tk.Tk):
         servicio = self.sistema.buscar_servicio(servicio_id)
         # Los parámetros cambian según el servicio: personas o cantidad de equipos.
         parametros: dict = {}
-        if isinstance(servicio, ReservaSala):
-            parametros["personas"] = int(self.cantidad_reserva.get())
-        elif isinstance(servicio, AlquilerEquipo):
-            parametros["cantidad"] = int(self.cantidad_reserva.get())
+        if isinstance(servicio, (ReservaSala, AlquilerEquipo)):
+            try:
+                cantidad = int(self.cantidad_reserva.get())
+            except ValueError as exc:
+                raise ValidacionError("La cantidad debe ser un entero.") from exc
+            clave = "personas" if isinstance(servicio, ReservaSala) else "cantidad"
+            parametros[clave] = cantidad
         reserva = self.sistema.crear_reserva(
             cliente_id,
             servicio_id,
-            float(self.duracion_reserva.get()),
+            self.duracion_reserva.get(),
             parametros,
         )
         messagebox.showinfo(
