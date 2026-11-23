@@ -38,6 +38,12 @@ class SistemaGestion:
             raise error_registrado(
                 ValidacionError, f"Ya existe un cliente con el correo {correo}."
             )
+        # Validación agregada por Henry Fabián Rodríguez Centeno.
+        # Evita registrar dos clientes con el mismo número de teléfono.
+        if any(c.telefono == telefono for c in self.clientes):
+            raise error_registrado(
+                ValidacionError, "Ya existe un cliente con ese número de teléfono."
+                )
         candidato = f"CLI-{self._contador_cliente + 1:03d}"
         cliente = Cliente(candidato, nombre, correo, telefono)
         self._contador_cliente += 1
